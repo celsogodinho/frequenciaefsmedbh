@@ -144,7 +144,7 @@ def regional(nome_regional, regional_id, dias_letivos, ano, mes):
               dict(name='Entre 20% e 25%',data=resultado['p_20_25'].tolist()),
               dict(name='Maior ou igual à 25%',data=resultado['p_25_100'].tolist())]
 
-    st_apexcharts(options, series, 'bar', 1200)    
+    st_apexcharts(options, series, 'bar', 1100)    
 
     rename = {
         'nome':'Local', 
