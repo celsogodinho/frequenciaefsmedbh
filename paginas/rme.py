@@ -15,34 +15,19 @@ def busca_resultados(dias_letivos, ano):
 
     conn = obtem_conexao()
 
-    sql_10 = '''
-        select e.regional regional_id, count(fa.cod_aluno) _0_10
+    sql_20 = '''
+        select e.regional regional_id, count(fa.cod_aluno) _0_20
         from faltas_acumuladas fa, aluno a , escola e, turma t
         where ano = %s
         and a.cod_aluno = fa.cod_aluno 
         and e.cod_escl = a.cod_escl_atua
         and t.cod_sequ_turm = a.cod_turm_atua
         and t.ensino in (7,8,9,10,11,12,13,14,15)
-        and 100*(cast(fa.total_sem_jus as float)/%s) <= 10.0
+        and 100*(cast(fa.total_sem_jus as float)/%s) < 20.0
         group by e.regional
     '''%(ano, dias_letivos)
 
-    data_menor_10 = conn.query(sql_10)
-
-    sql_10_20 = '''
-        select e.regional regional_id, count(fa.cod_aluno) _10_20
-        from faltas_acumuladas fa, aluno a , escola e, turma t
-        where ano = %s
-        and a.cod_aluno = fa.cod_aluno 
-        and e.cod_escl = a.cod_escl_atua
-        and t.cod_sequ_turm = a.cod_turm_atua
-        and t.ensino in (7,8,9,10,11,12,13,14,15)        
-        and 100*(cast(fa.total_sem_jus as float)/%s) > 10.0
-        and 100*(cast(fa.total_sem_jus as float)/%s) <= 20.0
-        group by e.regional
-    '''%(ano, dias_letivos, dias_letivos)
-
-    data_10_20 = conn.query(sql_10_20)
+    data_menor_20 = conn.query(sql_20)
 
     sql_20_25 = '''
         select e.regional regional_id, count(fa.cod_aluno) _20_25
@@ -52,7 +37,7 @@ def busca_resultados(dias_letivos, ano):
         and e.cod_escl = a.cod_escl_atua
         and t.cod_sequ_turm = a.cod_turm_atua
         and t.ensino in (7,8,9,10,11,12,13,14,15)        
-        and 100*(cast(fa.total_sem_jus as float)/%s) > 20.0
+        and 100*(cast(fa.total_sem_jus as float)/%s) >= 20.0
         and 100*(cast(fa.total_sem_jus as float)/%s) < 25.0
         group by e.regional
     '''%(ano, dias_letivos, dias_letivos)
@@ -73,16 +58,14 @@ def busca_resultados(dias_letivos, ano):
 
     data_maior_25 = conn.query(sql_maior_25)
 
-    result = regional.merge(data_menor_10, on='regional_id', how='left' )
-    result = result.merge(data_10_20, on='regional_id', how='left')
+    result = regional.merge(data_menor_20, on='regional_id', how='left' )
     result = result.merge(data_20_25, on='regional_id', how='left')
     result = result.merge(data_maior_25, on='regional_id', how='left')
 
     result.fillna(0, inplace=True)
 
-    result['total'] = result['_0_10'] + result['_10_20'] + result['_20_25'] + result['_25_100']
-    result['p_0_10'] = 100*result['_0_10']/result['total']
-    result['p_10_20'] = 100*result['_10_20']/result['total']
+    result['total'] = result['_0_20'] + result['_20_25'] + result['_25_100']
+    result['p_0_20'] = 100*result['_0_20']/result['total']
     result['p_20_25'] = 100*result['_20_25']/result['total']
     result['p_25_100'] = 100*result['_25_100']/result['total']
 
@@ -96,8 +79,7 @@ def rme(dias_letivos, ano, mes):
 
     resultado = busca_resultados(dias_letivos, ano)
 
-    total_0_10 = resultado['_0_10'].sum(axis=0)
-    total_10_20 = resultado['_10_20'].sum(axis=0)
+    total_0_20 = resultado['_0_20'].sum(axis=0)
     total_20_25 = resultado['_20_25'].sum(axis=0)
     total_25_100 = resultado['_25_100'].sum(axis=0)
     total = resultado['total'].sum(axis=0)
@@ -131,7 +113,7 @@ def rme(dias_letivos, ano, mes):
           'stacked': True,
           'stackType': '100%'
         },
-        'colors': ['#1ED0DF', '#fde910','#ffa500', "#ff0000"],
+        'colors': ['#1ED0DF', '#ffa500', "#ff0000"],
         'plotOptions': {
           'bar': {
             'horizontal': True,
@@ -142,7 +124,7 @@ def rme(dias_letivos, ano, mes):
           'colors': ['#fff']
         },
         'title': {
-                'text': 'Percentual de Alunos por Taxa de Infrequência nas Regionais',
+                'text': 'Percentual de Alunos do Ensino Fundamental por Taxa de Infrequência nas Regionais',
                 'horizontalAlign': 'center',
         },
         'subtitle': {
@@ -166,8 +148,7 @@ def rme(dias_letivos, ano, mes):
           'offsetX': 40
         }
     }
-    series = [dict(name='Menor ou igual à 10%',data=resultado['p_0_10'].tolist()),
-              dict(name='Entre 10% e 20%',data=resultado['p_10_20'].tolist()),
+    series = [dict(name='Menor que 20%',data=resultado['p_0_10'].tolist()),
               dict(name='Entre 20% e 25%',data=resultado['p_20_25'].tolist()),
               dict(name='Maior ou igual à 25%',data=resultado['p_25_100'].tolist())]
 
@@ -175,16 +156,15 @@ def rme(dias_letivos, ano, mes):
 
     rename = {
         'regional':'Regional', 
-        '_0_10':'Menor ou igual à 10%', 
-        '_10_20':'Entre 10% e 20%', 
+        '_0_20':'Menor que 20%', 
         '_20_25':'Entre 20% e 25%', 
         '_25_100':'Maior ou igual à 25%', 
         'total':'Total'
     }
     
-    df=resultado[['regional', '_0_10', '_10_20', '_20_25', '_25_100', 'total']].rename(columns=rename)
+    df=resultado[['regional', '_0_20',  '_20_25', '_25_100', 'total']].rename(columns=rename)
 
-    st.write('Total de Alunos por Taxa de Infrequência nas Regionais')
+    st.write('Total de Alunos do Ensino Fundamental por Taxa de Infrequência nas Regionais')
     st.dataframe(df, hide_index=True, use_container_width=True)
 
 
