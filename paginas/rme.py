@@ -148,7 +148,7 @@ def rme(dias_letivos, ano, mes):
           'offsetX': 40
         }
     }
-    series = [dict(name='Menor que 20%',data=resultado['p_0_10'].tolist()),
+    series = [dict(name='Menor que 20%',data=resultado['p_0_20'].tolist()),
               dict(name='Entre 20% e 25%',data=resultado['p_20_25'].tolist()),
               dict(name='Maior ou igual à 25%',data=resultado['p_25_100'].tolist())]
 
