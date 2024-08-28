@@ -1,5 +1,5 @@
 import streamlit as st
-from helpers import obtem_conexao, meses
+from helpers import obtem_conexao, meses, DT_ATUALIZACAO
 from streamlit_apexjs import st_apexcharts
 from streamlit_extras.metric_cards import style_metric_cards
 
@@ -121,7 +121,7 @@ def regional(nome_regional, regional_id, dias_letivos, ano, mes):
                 'horizontalAlign': 'center',
         },
         'subtitle': {
-                'text': 'Acumulado de Fevereiro à  %s de %s - Dias Letivos no período: %s - Dados atualizados em 27/08/2024'%(meses[mes], ano, dias_letivos),
+                'text': 'Acumulado de Fevereiro à  %s de %s - Dias Letivos no período: %s - Dados atualizados em %s'%(meses[mes], ano, dias_letivos, DT_ATUALIZACAO),
         },     
         'xaxis': {
           'categories':  resultado['nome'].tolist(),
