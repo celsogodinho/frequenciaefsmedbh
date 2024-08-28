@@ -121,7 +121,7 @@ def regional(nome_regional, regional_id, dias_letivos, ano, mes):
                 'horizontalAlign': 'center',
         },
         'subtitle': {
-                'text': 'Acumulado de Fevereiro à  %s de %s - Dias Letivos no período: %s - Dados atualizados em 25/06/2024'%(meses[mes], ano, dias_letivos),
+                'text': 'Acumulado de Fevereiro à  %s de %s - Dias Letivos no período: %s - Dados atualizados em 27/08/2024'%(meses[mes], ano, dias_letivos),
         },     
         'xaxis': {
           'categories':  resultado['nome'].tolist(),
